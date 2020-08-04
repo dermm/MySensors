@@ -83,7 +83,7 @@
  * @def MY_CAP_RADIO
  * @brief Indicate the type of transport selected.
  *
- * @see MY_RADIO_RF24, MY_RADIO_NRF5_ESB, MY_RADIO_RFM69, MY_RFM69_NEW_DRIVER, MY_RADIO_RFM95, MY_RS485
+ * @see MY_RADIO_RF24, MY_RADIO_NRF5_ESB, MY_RADIO_RFM69, MY_RFM69_NEW_DRIVER, MY_RADIO_RFM95, MY_RS485, MY_ESPnow
  *
  * | Radio        | Indicator
  * |--------------|----------
@@ -107,6 +107,8 @@
 #elif defined(MY_RADIO_RFM95)
 #define MY_CAP_RADIO "L"
 #elif defined(MY_RS485)
+#define MY_CAP_RADIO "S"
+#elif defined(MY_ESPnow)
 #define MY_CAP_RADIO "S"
 #else
 #define MY_CAP_RADIO "-"

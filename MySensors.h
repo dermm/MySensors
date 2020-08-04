@@ -285,8 +285,13 @@ MY_DEFAULT_RX_LED_PIN in your sketch instead to enable LEDs
 #else
 #define __RS485CNT 0	//!< __RS485CNT
 #endif
+#if defined(MY_ESPnow)
+#define __ESPnowCNT 1	//!< __ESPnowCNT
+#else
+#define __ESPnowCNT 0	//!< __ESPnowCNT
+#endif
 
-#if (__RF24CNT + __NRF5ESBCNT + __RFM69CNT + __RFM95CNT + __RS485CNT > 1)
+#if (__RF24CNT + __NRF5ESBCNT + __RFM69CNT + __RFM95CNT + __RS485CNT + __ESPnowCNT > 1)
 #error Only one forward link driver can be activated
 #endif
 #endif //DOXYGEN
@@ -297,7 +302,7 @@ MY_DEFAULT_RX_LED_PIN in your sketch instead to enable LEDs
 #endif
 
 // TRANSPORT INCLUDES
-#if defined(MY_RADIO_RF24) || defined(MY_RADIO_NRF5_ESB) || defined(MY_RADIO_RFM69) || defined(MY_RADIO_RFM95) || defined(MY_RS485)
+#if defined(MY_RADIO_RF24) || defined(MY_RADIO_NRF5_ESB) || defined(MY_RADIO_RFM69) || defined(MY_RADIO_RFM95) || defined(MY_RS485) || defined(MY_ESPnow)
 #include "hal/transport/MyTransportHAL.h"
 #include "core/MyTransport.h"
 
@@ -371,6 +376,10 @@ MY_DEFAULT_RX_LED_PIN in your sketch instead to enable LEDs
 #include "drivers/AltSoftSerial/AltSoftSerial.cpp"
 #endif
 #include "hal/transport/RS485/MyTransportRS485.cpp"
+#elif defined(MY_ESPnow)
+#include "hal/transport/ESPnow/driver/espnowBroadcast.cpp"
+#include "hal/transport/ESPnow/driver/EspNowFloodingMesh.cpp"
+#include "hal/transport/ESPnow/MyTransportESPnow.cpp"
 #elif defined(MY_RADIO_RFM69)
 #if defined(MY_RFM69_NEW_DRIVER)
 #include "hal/transport/RFM69/driver/new/RFM69_new.cpp"

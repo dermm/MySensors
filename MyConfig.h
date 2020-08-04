@@ -206,6 +206,91 @@
 
 
 /**
+ * @defgroup ESPnowSettingGrpPub ESPnow
+ * @ingroup TransportSettingGrpPub
+ * @brief These options are specific to the ESPnow wired transport.
+ * @{
+ */
+
+/**
+ * @def MY_ESPnow
+ * @brief Define this to use the ESPnow wired transport for sensor network communication.
+ */
+//#define MY_ESPnow
+
+/**
+ * @def MY_ESPnow_MAX_MESSAGE_LENGTH
+ * @brief The maximum message length used for ESPnow.
+ */
+#ifndef MY_ESPnow_MAX_MESSAGE_LENGTH
+#define MY_ESPnow_MAX_MESSAGE_LENGTH (40)
+#endif
+
+/**
+ * @def MY_ESPnow_CHANNEL
+ * @brief Channel Select for ESPnow.
+ */
+#ifndef MY_ESPnow_CHANNEL
+#define MY_ESPnow_CHANNEL 14
+#endif
+
+/**
+ * @def MY_ESPnow_BSID
+ * @brief BSID Select for ESPnow.
+ */
+#ifndef MY_ESPnow_BSID
+#define MY_ESPnow_BSID 0x112233
+#endif
+
+/**
+ * @def MY_ESPnow_secredKey 
+ * @brief Secred key for ESPnow.
+ */
+#ifndef MY_ESPnow_secredKey
+#define MY_ESPnow_secredKey {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}
+#endif
+
+/**
+ * @def MY_ESPnow_iv 
+ * @brief Initialisation Vector for ESPnow.
+ */
+#ifndef MY_ESPnow_iv
+#define MY_ESPnow_iv {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}
+#endif
+
+/**
+ * @def MY_ESPnow_ttl
+ * @brief TTL for ESPnow.
+ */
+#ifndef MY_ESPnow_ttl
+#define MY_ESPnow_ttl 3
+#endif
+
+/**
+ * @def MY_ESPnow_master
+ * @brief MasterFlag for ESPnow.
+ */
+#ifndef MY_ESPnow_master
+#if defined(MY_GATEWAY_FEATURE) || defined(MY_GATEWAY_SERIAL)
+#define MY_ESPnow_master 1
+#else
+#define MY_ESPnow_master 0
+#endif
+#endif
+
+
+/**
+ * @def MY_ESPnow_HWSERIAL
+ * @brief Define this if ESPnow is connected to a hardware serial port.
+ *
+ * Example: @code #define MY_ESPnow_HWSERIAL Serial1 @endcode
+ */
+//#define MY_ESPnow_HWSERIAL (Serial1)
+/** @}*/ // End of ESPnowSettingGrpPub group
+//------------------------------------------------------------------------
+
+
+/**
  * @defgroup RS485SettingGrpPub RS485
  * @ingroup TransportSettingGrpPub
  * @brief These options are specific to the RS485 wired transport.
@@ -2222,7 +2307,7 @@
 #endif
 
 // Enable sensor network "feature" if one of the transport types was enabled
-#if defined(MY_RADIO_RF24) || defined(MY_RADIO_NRF5_ESB) || defined(MY_RADIO_RFM69) || defined(MY_RADIO_RFM95) || defined(MY_RS485)
+#if defined(MY_RADIO_RF24) || defined(MY_RADIO_NRF5_ESB) || defined(MY_RADIO_RFM69) || defined(MY_RADIO_RFM95) || defined(MY_RS485) || defined(MY_ESPnow)
 #define MY_SENSOR_NETWORK
 #endif
 
@@ -2382,6 +2467,11 @@
 // FOTA update
 #define MY_DEBUG_VERBOSE_OTA_UPDATE
 #define MY_OTA_USE_I2C_EEPROM
+// ESPnow
+#define MY_ESPnow
+#define MY_ESPnow_DE_PIN
+#define MY_ESPnow_DE_INVERSE
+#define MY_ESPnow_HWSERIAL
 // RS485
 #define MY_RS485
 #define MY_RS485_DE_PIN
