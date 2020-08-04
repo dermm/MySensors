@@ -78,7 +78,7 @@ uint32_t _parseCount;
 
 
 int _bsid = MY_ESPnow_BSID;
-unsigned char _secredKey[16] = MY_ESPnow_secredKey;
+unsigned char _secretKey[16] = MY_ESPnow_secretKey;
 unsigned char _iv[16] = MY_ESPnow_iv;
 const int _ttl = MY_ESPnow_ttl;
 
@@ -254,7 +254,7 @@ bool transportInit(void)
 	_errorCount = 0;
 	_parseCount = 0;
 
-	espNowFloodingMesh_secredkey(_secredKey);
+	espNowFloodingMesh_secretKey(_secretKey);
 	espNowFloodingMesh_setAesInitializationVector(_iv);
 #if MY_ESPnow_master 
 	espNowFloodingMesh_setToMasterRole(true, _ttl);
@@ -275,7 +275,7 @@ bool transportInit(void)
 	espNowFloodingMesh_begin(MY_ESPnow_CHANNEL, _bsid);
 
 	//Ask instant sync from master.
-	if (espNowFloodingMesh_syncWithMasterAndWait(150,15))
+	if (espNowFloodingMesh_syncTimeAndWait(150,15))
 	{
 #if MY_ESPnow_Debug
 		Serial.println("Sync OK");

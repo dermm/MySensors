@@ -31,7 +31,7 @@ enum messagetype_t {
   USER_REQUIRE_REPLY_MSG
 };
 
-uint8_t aes_secredKey[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE, 0xFF};
+uint8_t aes_secretKey[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE, 0xFF};
 unsigned char ivKey[16] = {0xb2, 0x4b, 0xf2, 0xf7, 0x7a, 0xc5, 0xec, 0x0c, 0x5e, 0x1f, 0x4d, 0xc1, 0xae, 0x46, 0x5e, 0x75};
 
 bool masterFlag = false;  // is this the (single) master node?
@@ -500,15 +500,21 @@ void msg_recv_cb(const uint8_t *data, int len, uint8_t rssi)
                 }
               }
             }
-            if(m.encrypted.header.msgId==INSTANT_TIME_SYNC_REQ) {
-              ok = true;
-              if(masterFlag) {
+            if ( m.encrypted.header.msgId == INSTANT_TIME_SYNC_REQ ) {
+              // ok = true;   // we do not forward time sync messages -- only direct nodes can send time sync response
+              if (masterFlag) {
                 #ifdef DEBUG_PRINTS
                 Serial.println("Send time sync message!! (Requested)");
                 #endif
-                sendMsg(NULL, 0, syncTTL, SYNC_TIME_MSG);
-                sendMsg(NULL, 0, syncTTL, SYNC_TIME_MSG);
-                //print(3,"Send time sync message!! (Requested)");
+                sendMsg(NULL, 0, syncTTL, SYNC_TIME_MSG);	                sendMsg(NULL, 0, 0, SYNC_TIME_MSG); // only for the direct nodes
+                print(3,"Master - send time sync message (Requested)");
+              } else {
+                if (syncronized) {
+                  sendMsg(NULL, 0, 0, SYNC_TIME_MSG); // only for the direct nodes
+                  print(3,"Send time sync message by node directly (Requested)");
+                } else {
+                  ok = true; // let's forward sync time request if we are not in sync
+                }
               }
             }
             if(m.encrypted.header.msgId==SYNC_TIME_MSG) {
@@ -571,12 +577,14 @@ void msg_recv_cb(const uint8_t *data, int len, uint8_t rssi)
       #endif
     }
 }
-void espNowFloodingMesh_requestInstantTimeSyncFromMaster() {
+void espNowFloodingMesh_requestInstantTimeSync() {
   if(masterFlag) return;
   #ifdef DEBUG_PRINTS
   Serial.println("Request instant time sync from master.");
   #endif
   sendMsg(NULL, 0, 0, INSTANT_TIME_SYNC_REQ);
+
+  return;
 }
 
 void espNowFloodingMesh_end() {
@@ -606,8 +614,8 @@ void espNowFloodingMesh_begin(int channel, char bsId[6]) {
   myBsid = bsid;
 }
 
-void espNowFloodingMesh_secredkey(const unsigned char key[16]){
-  memcpy(aes_secredKey, key, sizeof(aes_secredKey));
+void espNowFloodingMesh_secretKey(const unsigned char key[16]){
+  memcpy(aes_secretKey, key, sizeof(aes_secretKey));
 }
 
 void decrypt(const uint8_t *_from, struct meshFrame *m, int size) {
@@ -617,7 +625,7 @@ void decrypt(const uint8_t *_from, struct meshFrame *m, int size) {
   uint8_t to[2*16];
   for(int i=0;i<size;i=i+16) {
       const uint8_t *from = _from + i + SECRED_PART_OFFSET;
-      uint8_t *key = aes_secredKey;
+      uint8_t *key = aes_secretKey;
 
       #ifdef DISABLE_CRYPTING
         memcpy(to,from,16);
@@ -654,7 +662,7 @@ int encrypt(struct meshFrame *m) {
 
   for(int i=0;i<size;i=i+16) {
       uint8_t *from = (uint8_t *)m+i+SECRED_PART_OFFSET;
-      uint8_t *key = aes_secredKey;
+      uint8_t *key = aes_secretKey;
      #ifdef DISABLE_CRYPTING
        memcpy((void*)to,(void*)from,16);
      #else
@@ -691,7 +699,12 @@ bool forwardMsg(const uint8_t *data, int len) {
   struct meshFrame m;
   memcpy(&m, data,len);
 
-  if(m.unencrypted.ttl==0) return false;
+  if (m.unencrypted.ttl==0) {
+    #ifdef DEBUG_PRINTS
+    Serial.print("FORWARD: TTL=0\n");
+    #endif
+    return false; 
+  }
 
   m.unencrypted.ttl = m.unencrypted.ttl-1;
 
@@ -826,16 +839,16 @@ bool espNowFloodingMesh_sendAndWaitReply(uint8_t* msg, int size, int ttl, int tr
   return false;
 }
 
-bool espNowFloodingMesh_syncWithMasterAndWait(int timeoutMs, int tryCount) {
-  if(masterFlag) return true;
+bool espNowFloodingMesh_syncTimeAndWait(int timeoutMs, int tryCount) {
+  if(masterFlag || timeStampCheckDisabled) return true;
   syncronized = false;
   for(int i=0;i<tryCount;i++) {
       unsigned long dbtm = millis();
-      espNowFloodingMesh_requestInstantTimeSyncFromMaster();
+      espNowFloodingMesh_requestInstantTimeSync();
 
       while(1) {
         espNowFloodingMesh_loop();
-        delay(10);
+        delay(1);
         if(syncronized) {
           return true; //OK all received;
         }
